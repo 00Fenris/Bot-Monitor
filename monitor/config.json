@@ -1,0 +1,30 @@
+{
+  "frequency_minutes": 15,
+  "notify_on_change": true,
+  "targets": [
+    {
+      "id": "pccomponentes_mag_255f",
+      "name": "PcComponentes - MAG 255F (example)",
+      "type": "url",
+      "url": "https://www.pccomponentes.com/buscar?q=mag%20255f",
+      "keywords": ["MAG 255F","255F","200Hz","200 Hz","MAG255F", "MSI"],
+      "price_threshold_eur": 95
+    },
+    {
+      "id": "amazon_mag_244f",
+      "name": "Amazon search - MAG 244F (example)",
+      "type": "url",
+      "url": "https://www.amazon.es/s?k=mag+244f",
+      "keywords": ["MAG 244F","244F","200Hz","200 Hz","MSI"],
+      "price_threshold_eur": 95
+    },
+    {
+      "id": "chollometro_monitores",
+      "name": "Chollometro - Sección Monitores",
+      "type": "section",
+      "url": "https://www.chollometro.com/c/monitores/",
+      "keywords": ["200Hz","200 Hz","144Hz","144 Hz","MSI","MAG 244F","MAG 255F","G255F","24.5","24\"","24inch","24in"],
+      "price_threshold_eur": null
+    }
+  ]
+}
