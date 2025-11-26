@@ -22,9 +22,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r monitor/requirements.txt
 
-      - name: Run monitor
-        run: |
-          python monitor/monitor.py
+        - name: Run monitor
+    env:
+      TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+    run: |
+      python monitor/monitor.py
 
       - name: Commit state if changed
         run: |
