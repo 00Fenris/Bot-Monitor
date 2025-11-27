@@ -1,0 +1,9 @@
+# Local virtual environment
+.venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Local dotenv files
+monitor/.env
