@@ -4,13 +4,18 @@ import json
 import hashlib
 import time
 import re
+import argparse
 import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 from datetime import datetime
 
-STATE_FILE = 'state.json'
-CONFIG_FILE = 'config.json'
+from dotenv import load_dotenv
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+load_dotenv(os.path.join(SCRIPT_DIR, '.env'))
+STATE_FILE = os.environ.get('MONITOR_STATE', os.path.join(SCRIPT_DIR, 'state.json'))
+CONFIG_FILE = os.environ.get('MONITOR_CONFIG', os.path.join(SCRIPT_DIR, 'config.json'))
 TELEGRAM_TOKEN = os.environ.get('TELEGRAM_TOKEN')
 TELEGRAM_CHAT_ID = os.environ.get('TELEGRAM_CHAT_ID')
 
@@ -19,20 +24,26 @@ HEADERS = {
 }
 
 
-def load_config():
-    with open(CONFIG_FILE, 'r', encoding='utf8') as f:
+def load_config(path=None):
+    if path is None:
+        path = CONFIG_FILE
+    with open(path, 'r', encoding='utf8') as f:
         return json.load(f)
 
 
-def load_state():
-    if not os.path.exists(STATE_FILE):
+def load_state(path=None):
+    if path is None:
+        path = STATE_FILE
+    if not os.path.exists(path):
         return {}
-    with open(STATE_FILE, 'r', encoding='utf8') as f:
+    with open(path, 'r', encoding='utf8') as f:
         return json.load(f)
 
 
-def save_state(state):
-    with open(STATE_FILE, 'w', encoding='utf8') as f:
+def save_state(state, path=None):
+    if path is None:
+        path = STATE_FILE
+    with open(path, 'w', encoding='utf8') as f:
         json.dump(state, f, indent=2, ensure_ascii=False)
 
 
@@ -143,9 +154,24 @@ def check_target(target, state):
     return None
 
 
-def main():
-    config = load_config()
-    state = load_state()
+def main(argv=None):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config', help='Path to config.json (default: monitor/config.json)')
+    parser.add_argument('--state', help='Path to state.json (default: monitor/state.json)')
+    parser.add_argument('--dry-run', action='store_true', help='Do not send telegram messages; useful for testing')
+    parser.add_argument('--telegram-token', help='Telegram bot token (overrides TELEGRAM_TOKEN env var)')
+    parser.add_argument('--telegram-chat-id', help='Telegram chat id (overrides TELEGRAM_CHAT_ID env var)')
+    args = parser.parse_args(argv)
+
+    config = load_config(args.config)
+    state = load_state(args.state)
+
+    # optionally override telegram vars from CLI for tests
+    global TELEGRAM_TOKEN, TELEGRAM_CHAT_ID
+    if args.telegram_token:
+        TELEGRAM_TOKEN = args.telegram_token
+    if args.telegram_chat_id:
+        TELEGRAM_CHAT_ID = args.telegram_chat_id
 
     alerts = []
     for t in config.get('targets', []):
@@ -156,13 +182,17 @@ def main():
 
     if alerts:
         message = '<b>ALERTAS MONITOR</b>\n\n' + '\n\n-----\n\n'.join(alerts)
-        telegram_send(message)
+        if args.dry_run:
+            print('[INFO] Dry-run mode: not sending telegram message')
+            print(message)
+        else:
+            telegram_send(message)
         # save state (we will let the workflow commit it back if desired)
-        save_state(state)
+        save_state(state, args.state)
         # exit 0 to indicate success
         return 0
     else:
-        save_state(state)
+        save_state(state, args.state)
         print('No interesting changes')
         return 0
 
