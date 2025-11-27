@@ -32,11 +32,11 @@ jobs:
         run: |
           python monitor/monitor.py
 
-    - name: Commit state if changed
+      - name: Commit state if changed
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "github-actions[bot]"
-      git add monitor/state.json || true
+          git add monitor/state.json || true
           if ! git diff --staged --quiet; then
             git commit -m "Update monitor state [skip ci]"
             git push origin HEAD:$(echo $GITHUB_REF | sed 's|refs/heads/||')
